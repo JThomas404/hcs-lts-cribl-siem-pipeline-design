@@ -51,9 +51,9 @@ The vendor's original proposal was `LTS → Kafka → Cribl Stream → SIEM`. Th
 ## Project Folder Structure
 
 ```
-README.md                                        # This document
-CONTEXT.md                                        # Glossary of platform and pipeline terms
-IMPLEMENTATION-PLAN.md                            # The original object-storage-based draft, superseded
+README.md                                    # This document
+CONTEXT.md                                   # Glossary of platform and pipeline terms
+IMPLEMENTATION-PLAN.md                       # The original object-storage-based draft, superseded
 adr/
 ├── obs-relay-instead-of-kafka-broker.md     # Superseded: cyclical object-storage relay design
 └── self-managed-kafka-for-hcs-realtime.md   # Current: self-managed Kafka-protocol broker design
@@ -78,13 +78,13 @@ This repository is a documentation-only design case study. There is no deploymen
 
 No public cloud provider bridges its log service directly into Cribl without an intermediary. Each uses its own managed streaming or eventing service as the conduit:
 
-| Provider | Log service | Conduit | Cribl side |
-|---|---|---|---|
-| AWS | CloudWatch Logs | Kinesis Data Firehose | Native Firehose HTTP Endpoint Source |
-| Azure | Azure Monitor | Event Hubs | Native Event Hub Source |
-| Google Cloud | Cloud Logging | Pub/Sub | Native Pub/Sub Source |
-| Huawei public cloud | LTS | DMS Managed Kafka | Kafka Source |
-| Huawei Cloud Stack (private cloud) | LTS | No managed option | Kafka Source |
+| Provider                           | Log service     | Conduit               | Cribl side                           |
+| ---------------------------------- | --------------- | --------------------- | ------------------------------------ |
+| AWS                                | CloudWatch Logs | Kinesis Data Firehose | Native Firehose HTTP Endpoint Source |
+| Azure                              | Azure Monitor   | Event Hubs            | Native Event Hub Source              |
+| Google Cloud                       | Cloud Logging   | Pub/Sub               | Native Pub/Sub Source                |
+| Huawei public cloud                | LTS             | DMS Managed Kafka     | Kafka Source                         |
+| Huawei Cloud Stack (private cloud) | LTS             | No managed option     | Kafka Source                         |
 
 It reads as "direct" on the public-cloud rows only because the conduit is fully managed by the provider and Cribl ships a purpose-built connector for it. Huawei's public-cloud equivalent, DMS Managed Kafka, would fill the same role on this platform, except that a Huawei Solution Architect confirmed directly on a design call that it is a public-cloud-only service: this private-cloud deployment has no managed Kafka broker component alongside its log store, and no setting or add-on provisions one. That is a deployment-model limitation, not a negotiable configuration choice.
 
@@ -186,15 +186,15 @@ Cribl's Persistent Queue provides disk-based buffering against a temporary SIEM 
 
 ## Design Decisions and Highlights
 
-| Decision | Alternatives Considered | Rationale |
-|---|---|---|
-| Self-managed Kafka-protocol broker between LTS and Cribl | A zero-intermediary "direct" design as originally requested | Confirmed architecturally impossible on this platform: LTS has no protocol-agnostic push mechanism, and Cribl's Kafka Source only pulls from an existing broker |
-| Real-time transfer over cyclical object-storage transfer | The lower-effort object-storage polling design (the superseded relay ADR) | Real-time delivery was stated as a hard requirement for privileged-access and audit log alerting, which cannot tolerate polling-interval latency |
-| RedPanda evaluated alongside full Apache Kafka | Committing to Apache Kafka outright | A single-binary, Kafka-wire-compatible alternative with no ZooKeeper/KRaft cluster or JVM to operate reduces, without eliminating, the operational burden the design otherwise reopens |
-| One topic per in-scope log stream | A single shared topic for all log types | Preserves per-stream isolation and makes least-privilege, per-topic credential scoping enforceable |
-| Scope limited to RDS audit, RDS error, and platform/admin logs | Including operational and performance logs in the same pipeline | Operational and performance signals already have a home in the existing observability stack; duplicating them into the SIEM pipeline would only add ingestion cost and alert noise |
-| The operational-overhead trade-off is stated explicitly rather than resolved silently | Presenting the self-managed broker design as a clean solution | Accepting a self-managed broker reopens exactly the concern the security team raised about the original vendor proposal; the honest response is to say so, not to obscure it |
-| The superseded ADR is kept, not deleted | Rewriting the original design document once the real-time requirement changed the answer | Preserves the reasoning behind the original object-storage design so it remains available as a documented, lower-effort fallback if requirements ever change |
+| Decision                                                                              | Alternatives Considered                                                                  | Rationale                                                                                                                                                                              |
+| ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Self-managed Kafka-protocol broker between LTS and Cribl                              | A zero-intermediary "direct" design as originally requested                              | Confirmed architecturally impossible on this platform: LTS has no protocol-agnostic push mechanism, and Cribl's Kafka Source only pulls from an existing broker                        |
+| Real-time transfer over cyclical object-storage transfer                              | The lower-effort object-storage polling design (the superseded relay ADR)                | Real-time delivery was stated as a hard requirement for privileged-access and audit log alerting, which cannot tolerate polling-interval latency                                       |
+| RedPanda evaluated alongside full Apache Kafka                                        | Committing to Apache Kafka outright                                                      | A single-binary, Kafka-wire-compatible alternative with no ZooKeeper/KRaft cluster or JVM to operate reduces, without eliminating, the operational burden the design otherwise reopens |
+| One topic per in-scope log stream                                                     | A single shared topic for all log types                                                  | Preserves per-stream isolation and makes least-privilege, per-topic credential scoping enforceable                                                                                     |
+| Scope limited to RDS audit, RDS error, and platform/admin logs                        | Including operational and performance logs in the same pipeline                          | Operational and performance signals already have a home in the existing observability stack; duplicating them into the SIEM pipeline would only add ingestion cost and alert noise     |
+| The operational-overhead trade-off is stated explicitly rather than resolved silently | Presenting the self-managed broker design as a clean solution                            | Accepting a self-managed broker reopens exactly the concern the security team raised about the original vendor proposal; the honest response is to say so, not to obscure it           |
+| The superseded ADR is kept, not deleted                                               | Rewriting the original design document once the real-time requirement changed the answer | Preserves the reasoning behind the original object-storage design so it remains available as a documented, lower-effort fallback if requirements ever change                           |
 
 ## Local Testing and Validation
 

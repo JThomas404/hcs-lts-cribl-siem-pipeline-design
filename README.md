@@ -59,8 +59,6 @@ adr/
 └── self-managed-kafka-for-hcs-realtime.md   # Current: self-managed Kafka-protocol broker design
 ```
 
-This repository is a documentation-only design case study. There is no deployment code to browse, since the broker described here has not yet been provisioned; the value of this piece is the verification work and the decision record, not a codebase.
-
 ## Tasks and Implementation Steps
 
 1. **Verified the two platform facts that ruled out a zero-intermediary design**, against the platform's own `CreateTransfer` API and Cribl's documented Kafka Source connector behaviour, rather than relying on the vendor's initial proposal.
